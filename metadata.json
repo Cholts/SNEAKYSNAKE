@@ -1,0 +1,5 @@
+{
+  "name": "LermaBiblioChat",
+  "description": "Upload a book in .txt or .pdf format and have a conversation with an AI that has expert knowledge of its content.",
+  "requestFramePermissions": []
+}
