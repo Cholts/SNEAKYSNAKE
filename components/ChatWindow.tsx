@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import type { Message } from '../types';
-import ChatMessage from './ChatMessage';
-import Spinner from './Spinner';
+import type { Message } from '../types.ts';
+import ChatMessage from './ChatMessage.tsx';
+import Spinner from './Spinner.tsx';
 
 interface ChatWindowProps {
   bookContent: string;

@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback } from 'react';
-import type { Message } from '../types';
+import type { Message } from '../types.ts';
 
 const UserIcon: React.FC = () => (
   <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/60 flex-shrink-0 flex items-center justify-center border border-indigo-200 dark:border-indigo-800">

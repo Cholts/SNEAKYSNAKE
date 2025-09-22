@@ -1,6 +1,7 @@
+
 import React, { useState, useCallback } from 'react';
-import FileUpload from './components/FileUpload';
-import ChatWindow from './components/ChatWindow';
+import FileUpload from './components/FileUpload.tsx';
+import ChatWindow from './components/ChatWindow.tsx';
 
 type View = 'landing' | 'chat';
 
