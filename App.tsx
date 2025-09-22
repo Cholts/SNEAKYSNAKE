@@ -17,18 +17,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex flex-col items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-4xl h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-        <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+    <div className="min-h-screen bg-[#f9fafb] dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col items-center justify-center p-2 sm:p-4 font-sans">
+      <div className="w-full max-w-4xl h-[95vh] sm:h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+        <header className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 flex-shrink-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             <span className="text-indigo-500">LermaBiblio</span>Chat
           </h1>
           {bookContent && (
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-gray-50 dark:focus-visible:ring-offset-gray-800 transition-colors"
             >
-              Upload New Book
+              New Book
             </button>
           )}
         </header>
@@ -40,8 +40,8 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
-       <footer className="text-center p-4 text-gray-500 dark:text-gray-400 text-sm">
-        <p>Powered by Gemini. Engage in a conversation with your favorite books.</p>
+       <footer className="text-center p-4 text-xs text-gray-500 dark:text-gray-400">
+        <p>Powered by the Gemini API. Engage in a conversation with your favorite books.</p>
       </footer>
     </div>
   );

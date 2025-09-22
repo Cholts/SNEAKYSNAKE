@@ -9,9 +9,9 @@ interface FileUploadProps {
 }
 
 const UploadIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-400 dark:text-gray-500">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" />
+    </svg>
 );
 
 const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
@@ -120,8 +120,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
         className="w-full max-w-lg p-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-400 bg-gray-50 dark:bg-gray-700/50 transition-colors"
       >
         <div className="flex flex-col items-center">
-          <UploadIcon />
-          <p className="mt-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
+        {isReading ? (
+            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        ) : (
+            <UploadIcon />
+        )}
+          <p className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">
             {isReading ? readingStatus : 'Drag & drop a book file here'}
           </p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">or click to select a file</p>

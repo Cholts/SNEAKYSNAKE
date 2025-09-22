@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
 import type { Message } from '../types';
-import { Role } from '../types';
 import ChatMessage from './ChatMessage';
 import Spinner from './Spinner';
 
@@ -23,9 +21,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ bookContent, bookTitle }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSentFirstMessage, setHasSentFirstMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!process.env.API_KEY) {
+        setMessages([{ role: 'model', text: 'Configuration Error: The application is missing the required API key. Please ensure it is correctly configured by the administrator.' }]);
+        return;
+    }
+
     const initChat = () => {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -42,6 +46,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ bookContent, bookTitle }) => {
         setMessages([
           { role: 'model', text: `I've finished reading "${bookTitle}". What would you like to know?` }
         ]);
+        setHasSentFirstMessage(false);
       } catch (error) {
         console.error("Failed to initialize Gemini chat:", error);
         setMessages([{ role: 'model', text: 'Sorry, I am having trouble connecting to my brain right now. Please check the API key and refresh.' }]);
@@ -55,27 +60,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ bookContent, bookTitle }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentMessage.trim() || isLoading || !chat) return;
+  const sendMessage = useCallback(async (messageText: string) => {
+    if (!messageText.trim() || isLoading || !chat) return;
 
-    const userMessage: Message = { role: 'user', text: currentMessage };
-    setMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
     setIsLoading(true);
+    setHasSentFirstMessage(true);
+    const userMessage: Message = { role: 'user', text: messageText };
+    setMessages(prev => [...prev, userMessage, { role: 'model', text: '' }]);
 
     try {
-      const response = await chat.sendMessage({ message: userMessage.text });
-      const modelMessage: Message = { role: 'model', text: response.text };
-      setMessages(prev => [...prev, modelMessage]);
+      const responseStream = await chat.sendMessageStream({ message: userMessage.text });
+      
+      let text = '';
+      for await (const chunk of responseStream) {
+        text += chunk.text;
+        setMessages(prev => {
+          const updatedMessages = [...prev];
+          const lastMessage = updatedMessages[updatedMessages.length - 1];
+          if (lastMessage && lastMessage.role === 'model') {
+            lastMessage.text = text;
+          }
+          return updatedMessages;
+        });
+      }
     } catch (error) {
       console.error("Gemini API error:", error);
-      const errorMessage: Message = { role: 'model', text: "Oops! Something went wrong while trying to answer." };
-      setMessages(prev => [...prev, errorMessage]);
+      const errorMessage: Message = { role: 'model', text: "Oops! Something went wrong while trying to answer. Please try again." };
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage && lastMessage.role === 'model' && lastMessage.text === '') {
+          return [...prev.slice(0, -1), errorMessage];
+        }
+        return [...prev, errorMessage];
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [currentMessage, isLoading, chat]);
+  }, [chat, isLoading]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(currentMessage);
+    setCurrentMessage('');
+  };
+
+  const suggestedPrompts = [
+    "Provide a brief summary of this book.",
+    "Who are the main characters?",
+    "What are the key themes explored?",
+  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -83,9 +116,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ bookContent, bookTitle }) => {
         {messages.map((msg, index) => (
           <ChatMessage key={index} message={msg} />
         ))}
-        {isLoading && <ChatMessage message={{ role: 'model', text: '...' }} isLoading={true} />}
         <div ref={messagesEndRef} />
       </div>
+        {!hasSentFirstMessage && messages.length === 1 && (
+            <div className="p-6 pt-0">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Or try one of these prompts:</p>
+                <div className="flex flex-wrap gap-2">
+                    {suggestedPrompts.map(prompt => (
+                        <button 
+                            key={prompt} 
+                            onClick={() => sendMessage(prompt)}
+                            className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full text-gray-700 dark:text-gray-300 transition-colors"
+                        >
+                            {prompt}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
       <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="flex items-center space-x-2">
           <input
@@ -95,11 +143,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ bookContent, bookTitle }) => {
             placeholder={`Ask a question about "${bookTitle}"...`}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
             disabled={isLoading || !chat}
+            aria-label={`Ask a question about ${bookTitle}`}
           />
           <button
             type="submit"
             disabled={isLoading || !currentMessage.trim() || !chat}
-            className="p-2 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="p-2 rounded-full text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+            aria-label="Send message"
           >
             {isLoading ? <Spinner /> : <SendIcon/>}
           </button>
